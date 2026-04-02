@@ -3,12 +3,6 @@ body {
   padding: 20px;
 }
 
-.filtros button {
-  margin: 5px;
-  padding: 10px;
-  cursor: pointer;
-}
-
 .grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -16,9 +10,13 @@ body {
 }
 
 .card {
-  border: 1px solid #ccc;
-  padding: 10px;
-  border-radius: 10px;
+  background: linear-gradient(45deg, rgba(0, 123, 255, 0.4), rgba(0, 198, 255, 0.4));
+  color: white;
+  padding: 15px;
+  border-radius: 12px;
+  text-align: center;
+  transition: 0.3s;
+  backdrop-filter: blur(5px); /* efecto vidrio (pro) */
 }
 
 .img-producto {
@@ -30,7 +28,56 @@ body {
   margin: 10px auto;
 }
 
-.card:hover {
+body {
+  background: linear-gradient(to bottom, #000000, #1a1a1a);
+  color: white;
+}
+
+.filtros button {
+  background: linear-gradient(45deg, #096b91, #00c6ff);
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+}
+
+.filtros button:hover {
   transform: scale(1.05);
-  transition: 0.3s;
+  background: linear-gradient(45deg, #0056b3, #0099cc);
+}
+
+.img-producto {
+  width: 100%;
+  max-height: 180px;
+  object-fit: contain;
+  transition: 0.3s ease;
+  display: block;
+}
+
+.card:hover .img-producto {
+  transform: scale(1.5);
+}
+
+.card {
+  overflow: hidden;
+  position: relative;
+
+}
+
+.btn-comprar {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(45deg, #0066ff, #00ccff);
+  color: white;
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
+}
+
+.img-container {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 10px;
 }
