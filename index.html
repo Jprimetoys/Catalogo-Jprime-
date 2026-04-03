@@ -2,31 +2,45 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Disponibles Jprime toys</title>
+  <title>Catálogo Jprime toys</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h1>Disponibles Jprime toys</h1>
+  <!-- TÍTULO -->
+  <header>
+    <h1>Catálogo Jprime toys</h1>
+  </header>
 
-<div class="filtros">
-  <button onclick="filtrar('all')">Todos</button>
-  <button onclick="filtrar('kingdom')"> Kingdom/Beast Wars</button>
-  <button onclick="filtrar('siege')"> Siege</button>
-  <button onclick="filtrar('legacy')"> Legacy</button>
-  <button onclick="filtrar('movieverse')"> Movieverse</button>
-  <button onclick="filtrar('armada')"> Armada</button>
-  <button onclick="filtrar('g1')"> G1</button>
-  <button onclick="filtrar('mainline')"> Escala: Mainline</button>
-  <button onclick="filtrar('legends')"> Escala: Legends</button>
-  <button onclick="filtrar('masterpiece')"> Escala: Masterpiece</button>
-  <button onclick="filtrar('lego')"> Lego</button>
-  
+  <!-- BUSCADOR -->
+  <div class="search-wrapper">
+    <input type="text" id="buscador" onkeyup="buscar()" placeholder="Buscar...">
+  </div>
 
-</div>
+  <!-- FILTROS -->
+  <div class="filtros-wrapper">
+    <button id="btn-filtros">Filtros ▼</button>
+    <div id="filtros-opciones" class="filtros hidden">
+      <button onclick="filtrar('all')">Todos</button>
+      <button onclick="filtrar('kingdom')">Kingdom/Beast Wars</button>
+      <button onclick="filtrar('siege')">Siege</button>
+      <button onclick="filtrar('legacy')">Legacy</button>
+      <button onclick="filtrar('movieverse')">Movieverse</button>
+      <button onclick="filtrar('armada')">Armada</button>
+      <button onclick="filtrar('g1')">G1</button>
+      <button onclick="filtrar('combiner')">Combiner</button>
+      <button onclick="filtrar('mainline')">Escala: Mainline</button>
+      <button onclick="filtrar('legends')">Escala: Legends</button>
+      <button onclick="filtrar('masterpiece')">Escala: Masterpiece</button>
+      <button onclick="filtrar('lego')">Lego</button>
+      <button onclick="filtrar('marvel')">Marvel</button>
+    </div>
+  </div>
 
-<div id="productos" class="grid"></div>
+  <!-- CONTENEDOR DE PRODUCTOS -->
+  <div id="productos" class="grid"></div>
 
-<script src="script.js"></script>
+  <!-- SCRIPT -->
+  <script src="script.js"></script>
 </body>
 </html>
