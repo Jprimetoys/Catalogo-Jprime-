@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Catálogo Jprime toys</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- 📍 LÍNEA 9 → TÍTULO -->
+  <header>
+    <h1>Catálogo Jprime toys</h1>
+  </header>
+
+  <!-- 📍 LÍNEA 15 → BUSCADOR (CORREGIDO) -->
+  <div class="search-wrapper">
+    <input 
+      type="text" 
+      id="buscador" 
+      onkeyup="buscarProducto()" 
+      placeholder="Buscar por nombre..."
+    >
+  </div>
+
+  <!-- 📍 LÍNEA 25 → FILTROS (CORREGIDOS) -->
+  <div class="filtros-wrapper">
+    <button id="btn-filtros">Filtros ▼</button>
+
+    <div id="filtros-opciones" class="filtros hidden">
+      <button onclick="mostrarProductos(productos)">Todos</button>
+
+      <button onclick="filtrarCategoria('kingdom')">Kingdom/Beast Wars</button>
+      <button onclick="filtrarCategoria('siege')">Siege</button>
+      <button onclick="filtrarCategoria('legacy')">Legacy</button>
+      <button onclick="filtrarCategoria('movieverse')">Movieverse</button>
+      <button onclick="filtrarCategoria('armada')">Armada</button>
+      <button onclick="filtrarCategoria('g1')">G1</button>
+      <button onclick="filtrarCategoria('combiner')">Combiner</button>
+
+      <button onclick="filtrarCategoria('mainline')">Escala: Mainline</button>
+      <button onclick="filtrarCategoria('legends')">Escala: Legends</button>
+      <button onclick="filtrarCategoria('masterpiece')">Escala: Masterpiece</button>
+
+      <button onclick="filtrarCategoria('lego')">Lego</button>
+      <button onclick="filtrarCategoria('marvel')">Marvel</button>
+    </div>
+  </div>
+
+  <!-- 📍 LÍNEA 50 → CONTENEDOR (CLAVE, NO LO BORRES) -->
+  <div id="productos"></div>
+
+  <!-- 📍 LÍNEA 54 → SCRIPT -->
+  <script src="script.js"></script>
+
+  <!-- 📍 LÍNEA 57 → TOGGLE FILTROS (AGREGADO) -->
+  <script>
+    document.getElementById("btn-filtros").addEventListener("click", () => {
+      document.getElementById("filtros-opciones").classList.toggle("hidden");
+    });
+  </script>
+
+</body>
+</html>
