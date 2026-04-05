@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Catálogo Jprime toys</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- BARRA SUPERIOR: LOGO + TÍTULO + FILTROS + CONTACTO -->
+  <div class="top-bar">
+
+    <!-- LOGO Y TÍTULO -->
+    <div class="header">
+      <div class="logo-container">
+        <img src="logo.JPG" alt="Logo Jprime toys" class="logo">
+      </div>
+      <h1>CATÁLOGO</h1>
+    </div>
+
+  <!-- 📍 LÍNEA 15 → BUSCADOR (CORREGIDO) -->
+  <div class="search-wrapper">
+    <input 
+      type="text" 
+      id="buscador" 
+      onkeyup="buscarProducto()" 
+      placeholder="Buscar por nombre..."
+    >
+  </div>
+
+  <!-- 📍 LÍNEA 25 → FILTROS (CORREGIDOS) -->
+  <div class="filtros-wrapper">
+    <button id="btn-filtros">Filtros ▼</button>
+
+    <div id="filtros-opciones" class="filtros hidden">
+      <button onclick="mostrarProductos(productos)">Todos</button>
+
+      <button onclick="filtrarCategoria('kingdom')">Kingdom/Beast Wars</button>
+      <button onclick="filtrarCategoria('siege')">Siege</button>
+      <button onclick="filtrarCategoria('legacy')">Legacy</button>
+      <button onclick="filtrarCategoria('movieverse')">Movieverse</button>
+      <button onclick="filtrarCategoria('armada')">Armada</button>
+      <button onclick="filtrarCategoria('g1')">G1</button>
+      <button onclick="filtrarCategoria('combiner')">Combiner</button>
+
+      <button onclick="filtrarCategoria('mainline')">Escala: Mainline</button>
+      <button onclick="filtrarCategoria('legends')">Escala: Legends</button>
+      <button onclick="filtrarCategoria('masterpiece')">Escala: Masterpiece</button>
+
+      <button onclick="filtrarCategoria('lego')">Lego</button>
+      <button onclick="filtrarCategoria('marvel')">Marvel</button>
+    </div>
+  </div>
+
+  <!-- 📍 LÍNEA 50 → CONTENEDOR (CLAVE, NO LO BORRES) -->
+  <div id="productos"></div>
+
+  <!-- 📍 LÍNEA 54 → SCRIPT -->
+  <script src="script.js"></script>
+
+  <!-- 📍 LÍNEA 57 → TOGGLE FILTROS (AGREGADO) -->
+  <script>
+    document.getElementById("btn-filtros").addEventListener("click", () => {
+      document.getElementById("filtros-opciones").classList.toggle("hidden");
+    });
+  </script>
+
+</body>
+
+<!-- BOTÓN CONTACTAME AL FINAL -->
+<div class="contacto-final-wrapper">
+  <button class="btn-contacto-final">Contáctame ▼</button>
+  <div class="contacto-final-opciones">
+    <a href="https://wa.me/573001234567?text=Hola,%20vi%20tu%20catálogo%20y%20quiero%20info" target="_blank">WhatsApp</a>
+    <a href="https://instagram.com/tuusuario" target="_blank">Instagram</a>
+    <a href="https://facebook.com/tupagina" target="_blank">Facebook</a>
+  </div>
+</div>
+
+</html>
+

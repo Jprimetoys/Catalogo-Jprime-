@@ -115,5 +115,23 @@ function filtrarCategoria(categoria) {
 }
 
 
+
 // 📍 LÍNEA 108 → INICIAR
 cargarProductos();
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  const btnContactoFinal = document.querySelector(".btn-contacto-final");
+  const opcionesContactoFinal = document.querySelector(".contacto-final-opciones");
+
+  btnContactoFinal.addEventListener("click", () => {
+    opcionesContactoFinal.classList.toggle("hidden");
+  });
+
+  // Cerrar al hacer click fuera
+  document.addEventListener("click", (e) => {
+    if (!btnContactoFinal.contains(e.target) && !opcionesContactoFinal.contains(e.target)) {
+      opcionesContactoFinal.classList.add("hidden");
+    }
+  });
+});
