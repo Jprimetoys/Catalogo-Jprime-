@@ -25,10 +25,13 @@ let productos      = [];
 let listaActual    = []; // productos visibles tras filtro/búsqueda
 let ordenActual    = "default";
 let filtroActivo   = "all";
+let paginaActual   = 1;
+const PRODUCTOS_POR_PAGINA = 30;
 
-const contenedor = document.getElementById("productos");
-const contador   = document.getElementById("contador");
-const toast      = document.getElementById("toast");
+const contenedor  = document.getElementById("productos");
+const contador    = document.getElementById("contador");
+const paginacion  = document.getElementById("paginacion");
+const toast       = document.getElementById("toast");
 
 // ─── UTILIDADES ───────────────────────────────────────────────────────────────
 
@@ -125,7 +128,8 @@ async function fetchSheets(silencioso = false) {
 
 // ─── APLICAR FILTRO + ORDEN ───────────────────────────────────────────────────
 
-function aplicarFiltroYOrden() {
+function aplicarFiltroYOrden(resetPage = false) {
+  if (resetPage) paginaActual = 1;
   let lista = [...productos];
 
   // Filtro de categoría
@@ -153,18 +157,28 @@ function aplicarFiltroYOrden() {
 // ─── RENDER DE PRODUCTOS ──────────────────────────────────────────────────────
 
 function mostrarProductos(lista) {
-  // Actualizar contador
   const total = productos.length;
-  contador.textContent = lista.length === total
-    ? `${total} productos`
-    : `${lista.length} de ${total} productos`;
+  const totalFiltrados = lista.length;
+  const totalPaginas = Math.max(1, Math.ceil(totalFiltrados / PRODUCTOS_POR_PAGINA));
+  if (paginaActual > totalPaginas) paginaActual = totalPaginas;
 
-  if (!lista.length) {
+  const inicio = (paginaActual - 1) * PRODUCTOS_POR_PAGINA;
+  const fin = inicio + PRODUCTOS_POR_PAGINA;
+  const paginaLista = lista.slice(inicio, fin);
+  const inicioNum = totalFiltrados ? inicio + 1 : 0;
+  const finNum = Math.min(totalFiltrados, fin);
+
+  contador.textContent = totalFiltrados === total
+    ? `${total} productos`
+    : `${totalFiltrados} de ${total} productos`;
+
+  if (!paginaLista.length) {
     contenedor.innerHTML = "<p style='text-align:center;padding:40px;opacity:.6'>Sin resultados.</p>";
+    paginacion.innerHTML = "";
     return;
   }
 
-  contenedor.innerHTML = lista.map(p => {
+  contenedor.innerHTML = paginaLista.map(p => {
     const img      = transformarLinkDrive(p.imagen);
     const imgHover = transformarLinkDrive(p.imagenHover) || img;
     const waMsg    = encodeURIComponent(`quisiera comprar a "${p.nombre}"`);
@@ -198,12 +212,56 @@ function mostrarProductos(lista) {
       </div>
     `;
   }).join("");
+
+  renderPaginacion(totalPaginas);
 }
 
 // ─── BUSCADOR ─────────────────────────────────────────────────────────────────
 
 function buscarProducto() {
-  aplicarFiltroYOrden();
+  aplicarFiltroYOrden(true);
+}
+
+function renderPaginacion(totalPaginas) {
+  if (!paginacion) return;
+  if (totalPaginas <= 1) {
+    paginacion.innerHTML = "";
+    return;
+  }
+
+  const crearBoton = (page, label, active = false, disabled = false) =>
+    `<button class="pagina-btn${active ? " activo" : ""}" data-page="${page}" ${disabled ? "disabled" : ""}>${label}</button>`;
+
+  let start = Math.max(1, paginaActual - 2);
+  let end = Math.min(totalPaginas, paginaActual + 2);
+  if (paginaActual <= 3) {
+    start = 1;
+    end = Math.min(totalPaginas, 5);
+  }
+  if (paginaActual >= totalPaginas - 2) {
+    start = Math.max(1, totalPaginas - 4);
+    end = totalPaginas;
+  }
+
+  let html = "";
+  html += crearBoton(paginaActual - 1, "«", false, paginaActual === 1);
+
+  if (start > 1) {
+    html += crearBoton(1, 1, paginaActual === 1);
+    if (start > 2) html += `<span class="ellipsis">...</span>`;
+  }
+
+  for (let i = start; i <= end; i++) {
+    html += crearBoton(i, i, i === paginaActual);
+  }
+
+  if (end < totalPaginas) {
+    if (end < totalPaginas - 1) html += `<span class="ellipsis">...</span>`;
+    html += crearBoton(totalPaginas, totalPaginas, paginaActual === totalPaginas);
+  }
+
+  html += crearBoton(paginaActual + 1, "»", false, paginaActual === totalPaginas);
+  paginacion.innerHTML = html;
 }
 
 // ─── FILTROS ──────────────────────────────────────────────────────────────────
@@ -216,7 +274,7 @@ function filtrarCategoria(categoria) {
     btn.classList.toggle("activo", btn.dataset.cat === categoria);
   });
 
-  aplicarFiltroYOrden();
+  aplicarFiltroYOrden(true);
 }
 
 // ─── ORDEN POR PRECIO ─────────────────────────────────────────────────────────
@@ -276,6 +334,17 @@ document.addEventListener("DOMContentLoaded", () => {
     e.stopPropagation();
     panelContacto.classList.toggle("hidden");
   });
+
+  if (paginacion) {
+    paginacion.addEventListener("click", e => {
+      const btn = e.target.closest(".pagina-btn");
+      if (!btn || btn.disabled) return;
+      const page = Number(btn.dataset.page);
+      if (!page || page === paginaActual) return;
+      paginaActual = page;
+      mostrarProductos(listaActual);
+    });
+  }
 
   // Abrir imagen en lightbox al hacer clic en la portada
   contenedor.addEventListener("click", e => {
