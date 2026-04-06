@@ -276,6 +276,22 @@ body {
   box-shadow: 0 8px 24px rgba(0, 150, 255, 0.2);
 }
 
+.card.masterpiece {
+  background: linear-gradient(45deg, rgba(255, 215, 0, 0.3), rgba(218, 165, 32, 0.3));
+  border: 1px solid rgba(255, 215, 0, 0.5);
+  color: gold;
+  font-weight: bold; /* opcional, se ve mejor */
+}
+
+/* Precio (sobrescribe el azul que ya tienes) */
+.card.masterpiece > p {
+  color: rgb(255, 255, 255);
+}
+
+.card.masterpiece:hover {
+  box-shadow: 0 8px 24px rgba(255, 215, 0, 0.3);
+}
+
 .img-container {
   width: 100%;
   overflow: hidden;
@@ -307,11 +323,39 @@ body {
 }
 
 .lightbox-img {
+  width: 100%;
+  height: 100%;
   max-width: 92vw;
   max-height: 92vh;
+  min-width: 50vw;
+  min-height: 50vh;
   border-radius: 18px;
   box-shadow: 0 24px 68px rgba(0, 0, 0, 0.55);
   object-fit: contain;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  transition: background 0.2s ease;
+}
+
+.lightbox-close:hover {
+  background: rgba(0, 0, 0, 0.9);
 }
 
 .card:hover .img-producto {
@@ -452,6 +496,12 @@ body {
   right: 20px;
   bottom: 20px;
   z-index: 9999;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.contacto-final-wrapper.hidden {
+  opacity: 0;
+  transform: translateY(20px);
 }
 
 .btn-contacto-final {
@@ -561,10 +611,101 @@ body {
     align-items: flex-start;
   }
 
+  #productos {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+
   .contacto-final-opciones {
     flex-direction: column;
     right: 0;
     left: auto;
     transform: none;
   }
+
+  .sigueme-links {
+    gap: 8px;
+  }
+
+  .sigueme-link {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+}
+
+/* ─── BOTÓN VOLVER ARRIBA ───────────────────── */
+.btn-volver-arriba {
+  position: fixed;
+  right: 20px;
+  bottom: 100px; /* Por encima del botón de contacto */
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, #2670b0, #0099e0);
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 9998;
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.btn-volver-arriba:hover {
+  background: linear-gradient(135deg, #1a5f99, #0084c6);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.btn-volver-arriba.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ─── SECCIÓN SÍGUEME EN ─────────────────────── */
+.sigueme-section {
+  text-align: center;
+  padding: 20px;
+  margin-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.sigueme-links {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sigueme-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 20px;
+  text-decoration: none;
+  font-weight: 400;
+  font-size: 13px;
+  transition: opacity 0.2s ease;
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sigueme-link:hover {
+  opacity: 0.8;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.sigueme-link.facebook {
+  color: #42a5f5;
+}
+
+.sigueme-link.instagram {
+  color: #f56040;
+}
+
+.sigueme-link.tiktok {
+  color: rgba(255, 255, 255, 0.7);
 }

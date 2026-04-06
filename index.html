@@ -18,7 +18,9 @@
 
     <div class="header">
       <div class="logo-container">
-        <img src="logo.JPG" alt="Logo Jprime Toys" class="logo">
+        <a href="./" class="logo-link">
+          <img src="logo.JPG" alt="Logo Jprime Toys" class="logo">
+        </a>
         <p class="logo-subtitle">"Cumpliendo sueños de coleccionistas"</p>
       </div>
       <h1>CATÁLOGO</h1>
@@ -39,6 +41,15 @@
         <button class="filtro-btn" data-cat="armada"      onclick="filtrarCategoria('armada')">Armada</button>
         <button class="filtro-btn" data-cat="g1"          onclick="filtrarCategoria('g1')">G1</button>
         <button class="filtro-btn" data-cat="combiner"    onclick="filtrarCategoria('combiner')">Combiner</button>
+        <button class="filtro-btn" data-cat="3p"          onclick="filtrarCategoria('3p')">3P</button>
+        <button class="filtro-btn" data-cat="cybertron"   onclick="filtrarCategoria('cybertron')">Cybertron</button>
+        <button class="filtro-btn" data-cat="energon"     onclick="filtrarCategoria('energon')">Energon</button>
+        <button class="filtro-btn" data-cat="tfp"         onclick="filtrarCategoria('tfp')">TFP</button>
+        <button class="filtro-btn" data-cat="cw"          onclick="filtrarCategoria('cw')">CW</button>
+        <button class="filtro-btn" data-cat="tr"          onclick="filtrarCategoria('tr')">TR</button>
+        <button class="filtro-btn" data-cat="gen"         onclick="filtrarCategoria('gen')">Generations</button>
+        <button class="filtro-btn" data-cat="potp"        onclick="filtrarCategoria('potp')">POTP</button>
+        <button class="filtro-btn" data-cat="aotp"        onclick="filtrarCategoria('aotp')">AOTP</button>
         <button class="filtro-btn" data-cat="mainline"    onclick="filtrarCategoria('mainline')">Escala: Mainline</button>
         <button class="filtro-btn" data-cat="legends"     onclick="filtrarCategoria('legends')">Escala: Legends</button>
         <button class="filtro-btn" data-cat="masterpiece" onclick="filtrarCategoria('masterpiece')">Escala: Masterpiece</button>
@@ -66,20 +77,40 @@
   <!-- TOAST NOTIFICACIÓN -->
   <div id="toast" class="toast hidden">¡Enlace copiado!</div>
 
+  <!-- BOTÓN VOLVER ARRIBA -->
+  <button id="btn-volver-arriba" class="btn-volver-arriba hidden" onclick="volverArriba()">
+    ↑
+  </button>
+
   <div class="contacto-final-wrapper">
     <button class="btn-contacto-final">Contáctame</button>
     <div class="contacto-final-opciones hidden">
       <div class="contacto-panel">
         <strong>Contáctame</strong>
         <a class="contacto-link whatsapp" href="https://wa.me/573158261632?text=Hola,%20vi%20tu%20cat%C3%A1logo%20y%20quiero%20más%20información%20🤠" target="_blank">WhatsApp</a>
-        <a class="contacto-link instagram" href="https://instagram.com/jprime_tf" target="_blank">Instagram</a>
-        <a class="contacto-link facebook" href="https://facebook.com/juan.prime.910777" target="_blank">Facebook</a>
       </div>
     </div>
   </div>
   <div id="lightbox" class="lightbox hidden">
+    <button id="lightbox-close" class="lightbox-close">&times;</button>
     <img id="lightbox-img" class="lightbox-img" src="" alt="Imagen ampliada">
   </div>
+
+  <!-- SECCIÓN SÍGUEME EN -->
+  <div class="sigueme-section">
+    <div class="sigueme-links">
+      <a href="https://facebook.com/juan.prime.910777" target="_blank" class="sigueme-link facebook">
+        <span>Facebook</span>
+      </a>
+      <a href="https://instagram.com/jprime_tf" target="_blank" class="sigueme-link instagram">
+        <span>Instagram</span>
+      </a>
+      <a href="https://tiktok.com/@jprime.toys" target="_blank" class="sigueme-link tiktok">
+        <span>TikTok</span>
+      </a>
+    </div>
+  </div>
+
   <script src="script.js"></script>
 
 </body>

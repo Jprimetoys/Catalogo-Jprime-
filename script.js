@@ -15,9 +15,18 @@ const BADGE_COLORS = {
   combiner:    { bg: "#283593", color: "#fff" },
   mainline:    { bg: "#37474f", color: "#fff" },
   legends:     { bg: "#ad1457", color: "#fff" },
-  masterpiece: { bg: "#4e342e", color: "#fff" },
+  masterpiece: { bg: "#ffd700", color: "#000" },
   lego:        { bg: "#f9a825", color: "#000" },
   marvel:      { bg: "#c62828", color: "#fff" },
+  "3p":        { bg: "#607d8b", color: "#fff" },
+  cybertron:   { bg: "#1565c0", color: "#fff" },
+  energon:     { bg: "#e53935", color: "#fff" },
+  tfp:         { bg: "#8e24aa", color: "#fff" },
+  cw:          { bg: "#3949ab", color: "#fff" },
+  tr:          { bg: "#00897b", color: "#fff" },
+  gen:         { bg: "#f4511e", color: "#fff" },
+  potp:        { bg: "#6d4c41", color: "#fff" },
+  aotp:        { bg: "#424242", color: "#fff" },
 };
 
 // ─── ESTADO GLOBAL ────────────────────────────────────────────────────────────
@@ -143,7 +152,13 @@ function aplicarFiltroYOrden(resetPage = false) {
   // Búsqueda activa
   const q = document.getElementById("buscador").value.toLowerCase().trim();
   if (q) {
-    lista = lista.filter(p => p.nombre.toLowerCase().includes(q));
+    lista = lista.filter(p => {
+      // Buscar en nombre
+      const nombreMatch = p.nombre.toLowerCase().includes(q);
+      // Buscar en etiquetas
+      const etiquetasMatch = p.etiquetas && p.etiquetas.split("-").some(tag => tag.trim().toLowerCase().includes(q));
+      return nombreMatch || etiquetasMatch;
+    });
   }
 
   // Orden
@@ -181,15 +196,17 @@ function mostrarProductos(lista) {
   contenedor.innerHTML = paginaLista.map(p => {
     const img      = transformarLinkDrive(p.imagen);
     const imgHover = transformarLinkDrive(p.imagenHover) || img;
-    const waMsg    = encodeURIComponent(`quisiera comprar a "${p.nombre}"`);
+    const waMsg    = encodeURIComponent(`Quisiera comprar a "${p.nombre}"`);
     const waLink   = `https://wa.me/${WA_NUMBER}?text=${waMsg}`;
 
     // Badges de categorías
     const tags  = p.etiquetas ? p.etiquetas.split("-").map(t => t.trim()).filter(Boolean) : [];
     const badges = tags.map(tag => `<span class="badge">${tag}</span>`).join("");
+    const isMasterpiece = tags.includes('masterpiece');
+    const cardClass = `card${isMasterpiece ? ' masterpiece' : ''}`;
 
     return `
-      <div class="card">
+      <div class="${cardClass}">
         <div class="img-container">
           <img
             src="${img}"
@@ -309,6 +326,51 @@ function mostrarToast(msg) {
   }, 2200);
 }
 
+// ─── BOTÓN VOLVER ARRIBA ──────────────────────────────────────────────────────
+
+function volverArriba() {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  });
+}
+
+function toggleBotonVolverArriba() {
+  const btn = document.getElementById('btn-volver-arriba');
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+  // Mostrar el botón cuando se haya scrolleado más de 300px
+  if (scrollTop > 300) {
+    btn.classList.add('visible');
+    btn.classList.remove('hidden');
+  } else {
+    btn.classList.remove('visible');
+    btn.classList.add('hidden');
+  }
+}
+
+// Event listener para el scroll
+window.addEventListener('scroll', toggleBotonVolverArriba);
+
+// ─── BOTÓN CONTACTO ───────────────────────────────────────────────────────────
+
+function toggleBotonContacto() {
+  const btn = document.querySelector('.contacto-final-wrapper');
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const windowHeight = window.innerHeight;
+  const documentHeight = document.documentElement.scrollHeight;
+
+  // Ocultar el botón cuando esté cerca del final de la página (últimos 100px)
+  if (scrollTop + windowHeight >= documentHeight - 100) {
+    btn.classList.add('hidden');
+  } else {
+    btn.classList.remove('hidden');
+  }
+}
+
+// Event listener para el scroll del botón contacto
+window.addEventListener('scroll', toggleBotonContacto);
+
 // ─── EVENTOS DOM ──────────────────────────────────────────────────────────────
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -359,6 +421,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.target === lightbox) {
       lightbox.classList.add("hidden");
     }
+  });
+
+  // Cerrar lightbox con el botón X
+  const lightboxClose = document.getElementById("lightbox-close");
+  lightboxClose.addEventListener("click", () => {
+    lightbox.classList.add("hidden");
   });
 
   // Cerrar al hacer clic fuera
