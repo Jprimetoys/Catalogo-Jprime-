@@ -4,13 +4,11 @@ const SHEET_URL  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTF7A_45x7iW
 const CACHE_KEY  = "jprime_productos";
 const CACHE_MINS = 60;
 
-// Etiquetas que se muestran como badge en la tarjeta.
-// Las demás siguen funcionando para filtrar pero son invisibles.
 const ETIQUETAS_VISIBLES = new Set([
   "kingdom", "siege", "legacy", "movieverse", "armada", "g1",
-  "combiner", "3p", "cybertron", "energon", "tfp", "cw", "tr",
+  "combiner", "3p", "cybertron", "energon", "foc", "classics", "cw", "tr",
   "gen", "potp", "aotp", "mainline", "legends", "masterpiece",
-  "lego", "marvel"
+  "lego", "marvel", "off"
 ]);
 
 // ─── ESTADO GLOBAL ────────────────────────────────────────────────────────────
@@ -107,19 +105,50 @@ async function cargarProductos() {
 }
 
 async function fetchSheets(silencioso = false) {
-  try {
-    const res = await fetch(SHEET_URL);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.text();
-    productos = parsearCSV(data);
-    guardarCache(productos);
-    if (!silencioso) aplicarFiltroYOrden();
-  } catch (err) {
-    if (!silencioso) {
-      contenedor.innerHTML = "<p style='text-align:center;padding:40px;color:#f66'>Error al cargar el catálogo. Verifica tu conexión.</p>";
+  // Intentar con URL directa primero, luego con proxy CORS como respaldo.
+  // El proxy es necesario en algunos hostings donde el navegador bloquea
+  // las redirecciones de Google Sheets por falta de cabeceras CORS intermedias.
+  const URLS_A_INTENTAR = [
+    SHEET_URL,
+    "https://corsproxy.io/?" + encodeURIComponent(SHEET_URL),
+    "https://api.allorigins.win/raw?url=" + encodeURIComponent(SHEET_URL)
+  ];
+
+  for (const url of URLS_A_INTENTAR) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.text();
+      if (!data || data.trim().length === 0) throw new Error("Respuesta vacía");
+      productos = parsearCSV(data);
+      if (productos.length === 0) throw new Error("Sin productos en el CSV");
+      guardarCache(productos);
+      if (!silencioso) aplicarFiltroYOrden();
+      return; // éxito — salir
+    } catch (err) {
+      console.warn("Falló intento con URL:", url.substring(0, 60) + "...", "|", err.message);
     }
-    console.error("Error cargando Sheets:", err);
   }
+
+  // Todos los intentos fallaron
+  if (!silencioso) {
+    contenedor.innerHTML = `
+      <div style="text-align:center;padding:40px;">
+        <p style="color:#f66;font-size:16px;margin-bottom:8px;">
+          ⚠️ No se pudo cargar el catálogo.
+        </p>
+        <p style="color:rgba(255,255,255,0.5);font-size:13px;">
+          Verifica tu conexión a internet e intenta de nuevo.
+        </p>
+        <button onclick="location.reload()" style="
+          margin-top:16px;padding:10px 24px;border:none;border-radius:25px;
+          background:linear-gradient(45deg,#096b91,#00c6ff);color:#fff;
+          font-family:inherit;font-weight:600;cursor:pointer;font-size:14px;">
+          Reintentar
+        </button>
+      </div>`;
+  }
+  console.error("Error final: todos los intentos de carga fallaron.");
 }
 
 // ─── APLICAR FILTRO + ORDEN ───────────────────────────────────────────────────
@@ -170,7 +199,8 @@ function mostrarProductos(lista) {
 
   if (!paginaLista.length) {
     contenedor.innerHTML = "<p style='text-align:center;padding:40px;opacity:.6'>Sin resultados.</p>";
-    paginacion.innerHTML = "";
+    if (paginacion)    paginacion.innerHTML = "";
+    if (paginacionTop) paginacionTop.innerHTML = "";
     return;
   }
 
@@ -185,13 +215,11 @@ function mostrarProductos(lista) {
     const isMasterpiece = tags.includes("masterpiece");
     const cardClass = `card${isMasterpiece ? " masterpiece" : ""}`;
 
-    // Solo mostrar badges de etiquetas definidas como visibles en el código
     const badgesHTML = tags
       .filter(tag => ETIQUETAS_VISIBLES.has(tag))
       .map(tag => `<span class="badge">${tag}</span>`)
       .join("");
 
-    // Precio con o sin descuento
     let precioHTML;
     if (hasOff) {
       const original = precioNumero(p);
@@ -275,8 +303,8 @@ const GROUP_SIZE = 4;
 
 function renderPaginacion(totalPaginas) {
   if (totalPaginas <= 1) {
-    paginacion.innerHTML = "";
-    paginacionTop.innerHTML = "";
+    if (paginacion)    paginacion.innerHTML = "";
+    if (paginacionTop) paginacionTop.innerHTML = "";
     return;
   }
 
@@ -286,15 +314,13 @@ function renderPaginacion(totalPaginas) {
 
   let html = "";
   html += `<button class="pagina-btn" data-page="${paginaActual - 1}" ${paginaActual === 1 ? "disabled" : ""}>«</button>`;
-
   for (let i = inicio; i <= fin; i++) {
     html += `<button class="pagina-btn${i === paginaActual ? " activo" : ""}" data-page="${i}">${i}</button>`;
   }
-
   html += `<button class="pagina-btn" data-page="${paginaActual + 1}" ${paginaActual === totalPaginas ? "disabled" : ""}>»</button>`;
 
-  paginacion.innerHTML    = html;
-  paginacionTop.innerHTML = html;
+  if (paginacion)    paginacion.innerHTML    = html;
+  if (paginacionTop) paginacionTop.innerHTML = html;
 }
 
 // ─── FILTROS ──────────────────────────────────────────────────────────────────
@@ -333,7 +359,7 @@ function ordenar(tipo) {
   aplicarFiltroYOrden();
 }
 
-// ─── TOAST ───────────────────────────────────────────────────────────────────
+// ─── TOAST ────────────────────────────────────────────────────────────────────
 
 function mostrarToast(msg) {
   toast.textContent = msg;
@@ -375,7 +401,6 @@ function gestionarBuscadorSticky() {
 }
 
 window.addEventListener("scroll", gestionarBuscadorSticky);
-
 
 // ─── EVENTOS DOM ──────────────────────────────────────────────────────────────
 
