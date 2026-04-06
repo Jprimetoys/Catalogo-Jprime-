@@ -86,9 +86,26 @@ body {
   margin: 12px 0;
 }
 
-#buscador {
+.search-wrapper.sticky {
+  position: fixed;
+  top: 12px;
+  right: 20px;
+  z-index: 200;
+  margin: 0;
+}
+
+.search-box {
+  position: relative;
   width: 250px;
-  padding: 10px 18px;
+  background: rgba(10, 20, 40, 0.88);
+  border-radius: 50px;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.08);
+}
+
+#buscador {
+  width: 100%;
+  padding: 10px 36px 10px 18px;
   font-size: 15px;
   font-family: inherit;
   border: 2px solid #ddd;
@@ -102,15 +119,42 @@ body {
   box-shadow: 0 0 10px rgba(50, 150, 250, 0.3);
 }
 
+.btn-limpiar {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.btn-limpiar:hover {
+  color: rgba(0, 0, 0, 0.8);
+}
+
 /* ─── FILTROS ────────────────────────────────── */
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
 .filtros-wrapper {
   position: relative;
   display: inline-block;
   z-index: 10;
-  margin-bottom: 12px;
 }
 
-#btn-filtros {
+#btn-filtros,
+#btn-escalas {
   padding: 10px 20px;
   border-radius: 25px;
   border: none;
@@ -122,7 +166,8 @@ body {
   transition: background 0.3s;
 }
 
-#btn-filtros:hover {
+#btn-filtros:hover,
+#btn-escalas:hover {
   background: linear-gradient(45deg, #0056b3, #0099cc);
 }
 
@@ -153,7 +198,6 @@ body {
   transform: scale(1.05);
 }
 
-/* Filtro activo resaltado */
 .filtro-btn.activo {
   border-color: #fff;
   box-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
@@ -280,10 +324,9 @@ body {
   background: linear-gradient(45deg, rgba(255, 215, 0, 0.3), rgba(218, 165, 32, 0.3));
   border: 1px solid rgba(255, 215, 0, 0.5);
   color: gold;
-  font-weight: bold; /* opcional, se ve mejor */
+  font-weight: bold;
 }
 
-/* Precio (sobrescribe el azul que ya tienes) */
 .card.masterpiece > p {
   color: rgb(255, 255, 255);
 }
@@ -303,7 +346,7 @@ body {
   width: 100%;
   height: 180px;
   object-fit: contain;
-  transition: transform 0.5s ease;
+  transition: opacity 0.6s ease;
   cursor: zoom-in;
 }
 
@@ -358,9 +401,6 @@ body {
   background: rgba(0, 0, 0, 0.9);
 }
 
-.card:hover .img-producto {
-  transform: scale(1.5);
-}
 
 .card h3 {
   font-size: 14px;
@@ -373,6 +413,37 @@ body {
   font-weight: 700;
   margin-bottom: 8px;
   color: #7edbff;
+}
+
+/* ─── PRECIO CON DESCUENTO (etiqueta "off") ──── */
+.precio-original {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
+  text-decoration: line-through;
+  margin-bottom: 2px;
+}
+
+.precio-descuento {
+  font-size: 15px;
+  font-weight: 700;
+  color: #7edbff;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.badge-off {
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(255, 80, 80, 0.25);
+  color: #ff9999;
+  border: 1px solid rgba(255, 80, 80, 0.35);
+  border-radius: 50px;
+  padding: 1px 7px;
+  letter-spacing: 0.04em;
 }
 
 /* ─── BADGES DE CATEGORÍA ────────────────────── */
@@ -468,40 +539,13 @@ body {
   margin: 12px auto 0;
 }
 
-/* ─── TOAST NOTIFICACIÓN ─────────────────────── */
-.toast {
-  position: fixed;
-  bottom: 28px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #096b91;
-  color: white;
-  padding: 10px 24px;
-  border-radius: 50px;
-  font-size: 14px;
-  font-weight: 600;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-  z-index: 9999;
-  opacity: 1;
-  transition: opacity 0.4s ease;
-}
-
-.toast.oculto {
-  opacity: 0;
-}
-
-/* ─── CONTACTO FINAL ─────────────────────────── */
+/* ─── CONTACTO AL PIE ────────────────────────── */
 .contacto-final-wrapper {
-  position: fixed;
-  right: 20px;
-  bottom: 20px;
-  z-index: 9999;
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-.contacto-final-wrapper.hidden {
-  opacity: 0;
-  transform: translateY(20px);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px 20px 10px;
 }
 
 .btn-contacto-final {
@@ -527,8 +571,8 @@ body {
 .contacto-final-opciones {
   position: absolute;
   bottom: calc(100% + 12px);
-  right: 0;
-  left: auto;
+  left: 50%;
+  transform: translateX(-50%);
   background: rgba(7, 25, 44, 0.98);
   border-radius: 18px;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -536,6 +580,7 @@ body {
   padding: 16px;
   display: flex;
   z-index: 100;
+  white-space: nowrap;
 }
 
 .contacto-panel {
@@ -587,56 +632,11 @@ body {
   background: linear-gradient(135deg, rgba(59, 89, 152, 0.12), rgba(59, 89, 152, 0.22));
 }
 
-/* ─── RESPONSIVE ─────────────────────────────── */
-@media (max-width: 600px) {
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .logo {
-    width: 180px;
-  }
-
-  .search-wrapper {
-    justify-content: flex-start;
-  }
-
-  #buscador {
-    width: 100%;
-  }
-
-  .toolbar {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  #productos {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  }
-
-  .contacto-final-opciones {
-    flex-direction: column;
-    right: 0;
-    left: auto;
-    transform: none;
-  }
-
-  .sigueme-links {
-    gap: 8px;
-  }
-
-  .sigueme-link {
-    padding: 6px 10px;
-    font-size: 12px;
-  }
-}
-
 /* ─── BOTÓN VOLVER ARRIBA ───────────────────── */
 .btn-volver-arriba {
   position: fixed;
   right: 20px;
-  bottom: 100px; /* Por encima del botón de contacto */
+  bottom: 100px;
   width: 50px;
   height: 50px;
   border-radius: 50%;
@@ -708,4 +708,49 @@ body {
 
 .sigueme-link.tiktok {
   color: rgba(255, 255, 255, 0.7);
+}
+
+/* ─── RESPONSIVE ─────────────────────────────── */
+@media (max-width: 600px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .logo {
+    width: 180px;
+  }
+
+  .search-wrapper {
+    justify-content: flex-start;
+  }
+
+  #buscador {
+    width: 100%;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  #productos {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+
+  .contacto-final-opciones {
+    flex-direction: column;
+    right: 0;
+    left: auto;
+    transform: none;
+  }
+
+  .sigueme-links {
+    gap: 8px;
+  }
+
+  .sigueme-link {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
 }

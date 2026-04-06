@@ -2,45 +2,32 @@
 const WA_NUMBER  = "573158261632";
 const SHEET_URL  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTF7A_45x7iWTPbQse63AVIA2LEvX1G-SSi-B7jvIJ5iZrbqlNq4zQYZVJ6yajuspzBqYcsKdvVkgpH/pub?output=csv";
 const CACHE_KEY  = "jprime_productos";
-const CACHE_MINS = 60; // minutos antes de refrescar desde Sheets
+const CACHE_MINS = 60;
 
-// ─── COLORES DE BADGES POR CATEGORÍA ─────────────────────────────────────────
-const BADGE_COLORS = {
-  kingdom:     { bg: "#2e7d32", color: "#fff" },
-  siege:       { bg: "#e65100", color: "#fff" },
-  legacy:      { bg: "#6a1b9a", color: "#fff" },
-  movieverse:  { bg: "#b71c1c", color: "#fff" },
-  armada:      { bg: "#00838f", color: "#fff" },
-  g1:          { bg: "#f57f17", color: "#000" },
-  combiner:    { bg: "#283593", color: "#fff" },
-  mainline:    { bg: "#37474f", color: "#fff" },
-  legends:     { bg: "#ad1457", color: "#fff" },
-  masterpiece: { bg: "#ffd700", color: "#000" },
-  lego:        { bg: "#f9a825", color: "#000" },
-  marvel:      { bg: "#c62828", color: "#fff" },
-  "3p":        { bg: "#607d8b", color: "#fff" },
-  cybertron:   { bg: "#1565c0", color: "#fff" },
-  energon:     { bg: "#e53935", color: "#fff" },
-  tfp:         { bg: "#8e24aa", color: "#fff" },
-  cw:          { bg: "#3949ab", color: "#fff" },
-  tr:          { bg: "#00897b", color: "#fff" },
-  gen:         { bg: "#f4511e", color: "#fff" },
-  potp:        { bg: "#6d4c41", color: "#fff" },
-  aotp:        { bg: "#424242", color: "#fff" },
-};
+// Etiquetas que se muestran como badge en la tarjeta.
+// Las demás siguen funcionando para filtrar pero son invisibles.
+const ETIQUETAS_VISIBLES = new Set([
+  "kingdom", "siege", "legacy", "movieverse", "armada", "g1",
+  "combiner", "3p", "cybertron", "energon", "tfp", "cw", "tr",
+  "gen", "potp", "aotp", "mainline", "legends", "masterpiece",
+  "lego", "marvel"
+]);
 
 // ─── ESTADO GLOBAL ────────────────────────────────────────────────────────────
-let productos      = [];
-let listaActual    = []; // productos visibles tras filtro/búsqueda
-let ordenActual    = "default";
-let filtroActivo   = "all";
-let paginaActual   = 1;
+let productos        = [];
+let listaActual      = [];
+let ordenActual      = "default";
+let filtrosActivos   = new Set();
+let paginaActual     = 1;
+let imagenIntervalId = null;
+let mostrandoHover   = false;
 const PRODUCTOS_POR_PAGINA = 30;
 
-const contenedor  = document.getElementById("productos");
-const contador    = document.getElementById("contador");
-const paginacion  = document.getElementById("paginacion");
-const toast       = document.getElementById("toast");
+const contenedor    = document.getElementById("productos");
+const contador      = document.getElementById("contador");
+const paginacion    = document.getElementById("paginacion");
+const paginacionTop = document.getElementById("paginacion-top");
+const toast         = document.getElementById("toast");
 
 // ─── UTILIDADES ───────────────────────────────────────────────────────────────
 
@@ -67,7 +54,11 @@ function parsearCSV(texto) {
 }
 
 function precioNumero(p) {
-  return parseFloat(p.precio.replace(/[^0-9.]/g, "")) || 0;
+  return parseFloat(p.precio.replace(/\./g, "").replace(/,/g, "").replace(/[^0-9]/g, "")) || 0;
+}
+
+function formatearPrecio(num) {
+  return num.toLocaleString("es-CO");
 }
 
 // ─── CACHÉ LOCAL ──────────────────────────────────────────────────────────────
@@ -104,17 +95,13 @@ function mostrarSkeleton(n = 8) {
 // ─── CARGA DESDE GOOGLE SHEETS ────────────────────────────────────────────────
 
 async function cargarProductos() {
-  // 1. Intentar caché primero (carga instantánea)
   const cache = leerCache();
   if (cache) {
     productos = cache;
     aplicarFiltroYOrden();
-    // Actualizar en segundo plano sin spinner
     fetchSheets(true);
     return;
   }
-
-  // 2. Sin caché: mostrar skeleton y cargar
   mostrarSkeleton();
   await fetchSheets(false);
 }
@@ -141,27 +128,23 @@ function aplicarFiltroYOrden(resetPage = false) {
   if (resetPage) paginaActual = 1;
   let lista = [...productos];
 
-  // Filtro de categoría
-  if (filtroActivo !== "all") {
+  if (filtrosActivos.size > 0) {
     lista = lista.filter(p => {
       if (!p.etiquetas) return false;
-      return p.etiquetas.split("-").map(t => t.trim()).includes(filtroActivo);
+      const tags = p.etiquetas.split("-").map(t => t.trim());
+      return [...filtrosActivos].every(f => tags.includes(f));
     });
   }
 
-  // Búsqueda activa
   const q = document.getElementById("buscador").value.toLowerCase().trim();
   if (q) {
     lista = lista.filter(p => {
-      // Buscar en nombre
       const nombreMatch = p.nombre.toLowerCase().includes(q);
-      // Buscar en etiquetas
       const etiquetasMatch = p.etiquetas && p.etiquetas.split("-").some(tag => tag.trim().toLowerCase().includes(q));
       return nombreMatch || etiquetasMatch;
     });
   }
 
-  // Orden
   if (ordenActual === "asc")  lista.sort((a, b) => precioNumero(a) - precioNumero(b));
   if (ordenActual === "desc") lista.sort((a, b) => precioNumero(b) - precioNumero(a));
 
@@ -180,8 +163,6 @@ function mostrarProductos(lista) {
   const inicio = (paginaActual - 1) * PRODUCTOS_POR_PAGINA;
   const fin = inicio + PRODUCTOS_POR_PAGINA;
   const paginaLista = lista.slice(inicio, fin);
-  const inicioNum = totalFiltrados ? inicio + 1 : 0;
-  const finNum = Math.min(totalFiltrados, fin);
 
   contador.textContent = totalFiltrados === total
     ? `${total} productos`
@@ -199,28 +180,48 @@ function mostrarProductos(lista) {
     const waMsg    = encodeURIComponent(`Quisiera comprar a "${p.nombre}"`);
     const waLink   = `https://wa.me/${WA_NUMBER}?text=${waMsg}`;
 
-    // Badges de categorías
-    const tags  = p.etiquetas ? p.etiquetas.split("-").map(t => t.trim()).filter(Boolean) : [];
-    const badges = tags.map(tag => `<span class="badge">${tag}</span>`).join("");
-    const isMasterpiece = tags.includes('masterpiece');
-    const cardClass = `card${isMasterpiece ? ' masterpiece' : ''}`;
+    const tags = p.etiquetas ? p.etiquetas.split("-").map(t => t.trim()).filter(Boolean) : [];
+    const hasOff = tags.includes("off");
+    const isMasterpiece = tags.includes("masterpiece");
+    const cardClass = `card${isMasterpiece ? " masterpiece" : ""}`;
+
+    // Solo mostrar badges de etiquetas definidas como visibles en el código
+    const badgesHTML = tags
+      .filter(tag => ETIQUETAS_VISIBLES.has(tag))
+      .map(tag => `<span class="badge">${tag}</span>`)
+      .join("");
+
+    // Precio con o sin descuento
+    let precioHTML;
+    if (hasOff) {
+      const original = precioNumero(p);
+      const conDesc  = Math.round(original * 0.9);
+      precioHTML = `
+        <p class="precio-original">$${formatearPrecio(original)}</p>
+        <p class="precio-descuento">$${formatearPrecio(conDesc)}<span class="badge-off">-10%</span></p>
+      `;
+    } else {
+      precioHTML = `<p>$${formatearPrecio(precioNumero(p))}</p>`;
+    }
+
+    const tieneHover = imgHover && imgHover !== img;
 
     return `
       <div class="${cardClass}">
         <div class="img-container">
           <img
             src="${img}"
+            data-src="${img}"
             data-large-src="${img}"
+            ${tieneHover ? `data-hover-src="${imgHover}"` : ""}
             class="img-producto"
             alt="${p.nombre}"
             loading="lazy"
-            onmouseover="this.src='${imgHover}'"
-            onmouseout="this.src='${img}'"
           >
         </div>
         <h3>${p.nombre}</h3>
-        <p>$${p.precio}</p>
-        ${badges ? `<div class="badges">${badges}</div>` : ""}
+        ${precioHTML}
+        ${badgesHTML ? `<div class="badges">${badgesHTML}</div>` : ""}
         <div class="card-actions">
           <a href="${waLink}" target="_blank" rel="noopener noreferrer">
             <button class="btn-comprar">Comprar</button>
@@ -231,91 +232,108 @@ function mostrarProductos(lista) {
   }).join("");
 
   renderPaginacion(totalPaginas);
+  iniciarAlternanciaImagenes();
+}
+
+// ─── ALTERNANCIA DE IMÁGENES ──────────────────────────────────────────────────
+
+function iniciarAlternanciaImagenes() {
+  if (imagenIntervalId) clearInterval(imagenIntervalId);
+  mostrandoHover = false;
+
+  imagenIntervalId = setInterval(() => {
+    mostrandoHover = !mostrandoHover;
+    const imgs = document.querySelectorAll(".img-producto[data-hover-src]");
+    if (!imgs.length) return;
+    imgs.forEach(img => { img.style.opacity = "0"; });
+    setTimeout(() => {
+      imgs.forEach(img => {
+        img.src = mostrandoHover ? img.dataset.hoverSrc : img.dataset.src;
+        img.style.opacity = "1";
+      });
+    }, 600);
+  }, 5000);
 }
 
 // ─── BUSCADOR ─────────────────────────────────────────────────────────────────
 
 function buscarProducto() {
+  const val = document.getElementById("buscador").value;
+  document.getElementById("btn-limpiar").classList.toggle("hidden", !val);
   aplicarFiltroYOrden(true);
 }
 
+function limpiarBusqueda() {
+  document.getElementById("buscador").value = "";
+  document.getElementById("btn-limpiar").classList.add("hidden");
+  aplicarFiltroYOrden(true);
+}
+
+// ─── PAGINACIÓN ───────────────────────────────────────────────────────────────
+
+const GROUP_SIZE = 4;
+
 function renderPaginacion(totalPaginas) {
-  if (!paginacion) return;
   if (totalPaginas <= 1) {
     paginacion.innerHTML = "";
+    paginacionTop.innerHTML = "";
     return;
   }
 
-  const crearBoton = (page, label, active = false, disabled = false) =>
-    `<button class="pagina-btn${active ? " activo" : ""}" data-page="${page}" ${disabled ? "disabled" : ""}>${label}</button>`;
-
-  let start = Math.max(1, paginaActual - 2);
-  let end = Math.min(totalPaginas, paginaActual + 2);
-  if (paginaActual <= 3) {
-    start = 1;
-    end = Math.min(totalPaginas, 5);
-  }
-  if (paginaActual >= totalPaginas - 2) {
-    start = Math.max(1, totalPaginas - 4);
-    end = totalPaginas;
-  }
+  const grupoActual = Math.ceil(paginaActual / GROUP_SIZE);
+  const inicio      = (grupoActual - 1) * GROUP_SIZE + 1;
+  const fin         = Math.min(grupoActual * GROUP_SIZE, totalPaginas);
 
   let html = "";
-  html += crearBoton(paginaActual - 1, "«", false, paginaActual === 1);
+  html += `<button class="pagina-btn" data-page="${paginaActual - 1}" ${paginaActual === 1 ? "disabled" : ""}>«</button>`;
 
-  if (start > 1) {
-    html += crearBoton(1, 1, paginaActual === 1);
-    if (start > 2) html += `<span class="ellipsis">...</span>`;
+  for (let i = inicio; i <= fin; i++) {
+    html += `<button class="pagina-btn${i === paginaActual ? " activo" : ""}" data-page="${i}">${i}</button>`;
   }
 
-  for (let i = start; i <= end; i++) {
-    html += crearBoton(i, i, i === paginaActual);
-  }
+  html += `<button class="pagina-btn" data-page="${paginaActual + 1}" ${paginaActual === totalPaginas ? "disabled" : ""}>»</button>`;
 
-  if (end < totalPaginas) {
-    if (end < totalPaginas - 1) html += `<span class="ellipsis">...</span>`;
-    html += crearBoton(totalPaginas, totalPaginas, paginaActual === totalPaginas);
-  }
-
-  html += crearBoton(paginaActual + 1, "»", false, paginaActual === totalPaginas);
-  paginacion.innerHTML = html;
+  paginacion.innerHTML    = html;
+  paginacionTop.innerHTML = html;
 }
 
 // ─── FILTROS ──────────────────────────────────────────────────────────────────
 
 function filtrarCategoria(categoria) {
-  filtroActivo = categoria;
-
-  // Marcar filtro activo
-  document.querySelectorAll(".filtro-btn").forEach(btn => {
-    btn.classList.toggle("activo", btn.dataset.cat === categoria);
-  });
-
+  if (categoria === "all") {
+    filtrosActivos.clear();
+  } else {
+    if (filtrosActivos.has(categoria)) {
+      filtrosActivos.delete(categoria);
+    } else {
+      filtrosActivos.add(categoria);
+    }
+  }
+  actualizarBotonesActivos();
   aplicarFiltroYOrden(true);
+}
+
+function actualizarBotonesActivos() {
+  document.querySelectorAll(".filtro-btn").forEach(btn => {
+    const cat = btn.dataset.cat;
+    if (cat === "all") {
+      btn.classList.toggle("activo", filtrosActivos.size === 0);
+    } else {
+      btn.classList.toggle("activo", filtrosActivos.has(cat));
+    }
+  });
 }
 
 // ─── ORDEN POR PRECIO ─────────────────────────────────────────────────────────
 
 function ordenar(tipo) {
   ordenActual = tipo;
-
-  // Marcar botón activo
   document.querySelectorAll(".sort-btn").forEach(btn => btn.classList.remove("activo"));
   document.getElementById(`sort-${tipo === "default" ? "def" : tipo}`).classList.add("activo");
-
   aplicarFiltroYOrden();
 }
 
-// ─── COMPARTIR PRODUCTO ───────────────────────────────────────────────────────
-
-function compartir(nombre, precio) {
-  const texto = `${nombre} — $${precio} | Catálogo Jprime Toys`;
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(texto).then(() => mostrarToast("¡Copiado al portapapeles!"));
-  } else {
-    mostrarToast("Tu navegador no soporta copiar");
-  }
-}
+// ─── TOAST ───────────────────────────────────────────────────────────────────
 
 function mostrarToast(msg) {
   toast.textContent = msg;
@@ -329,47 +347,35 @@ function mostrarToast(msg) {
 // ─── BOTÓN VOLVER ARRIBA ──────────────────────────────────────────────────────
 
 function volverArriba() {
-  window.scrollTo({
-    top: 0,
-    behavior: 'smooth'
-  });
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function toggleBotonVolverArriba() {
-  const btn = document.getElementById('btn-volver-arriba');
+  const btn = document.getElementById("btn-volver-arriba");
   const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
-  // Mostrar el botón cuando se haya scrolleado más de 300px
   if (scrollTop > 300) {
-    btn.classList.add('visible');
-    btn.classList.remove('hidden');
+    btn.classList.add("visible");
+    btn.classList.remove("hidden");
   } else {
-    btn.classList.remove('visible');
-    btn.classList.add('hidden');
+    btn.classList.remove("visible");
+    btn.classList.add("hidden");
   }
 }
 
-// Event listener para el scroll
-window.addEventListener('scroll', toggleBotonVolverArriba);
+window.addEventListener("scroll", toggleBotonVolverArriba);
 
-// ─── BOTÓN CONTACTO ───────────────────────────────────────────────────────────
+// ─── BUSCADOR STICKY ──────────────────────────────────────────────────────────
 
-function toggleBotonContacto() {
-  const btn = document.querySelector('.contacto-final-wrapper');
-  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-  const windowHeight = window.innerHeight;
-  const documentHeight = document.documentElement.scrollHeight;
-
-  // Ocultar el botón cuando esté cerca del final de la página (últimos 100px)
-  if (scrollTop + windowHeight >= documentHeight - 100) {
-    btn.classList.add('hidden');
-  } else {
-    btn.classList.remove('hidden');
-  }
+function gestionarBuscadorSticky() {
+  const searchWrapper = document.querySelector(".search-wrapper");
+  const filterRow     = document.querySelector(".filter-row");
+  if (!searchWrapper || !filterRow) return;
+  const limite = filterRow.getBoundingClientRect().bottom + window.scrollY;
+  searchWrapper.classList.toggle("sticky", window.scrollY > limite);
 }
 
-// Event listener para el scroll del botón contacto
-window.addEventListener('scroll', toggleBotonContacto);
+window.addEventListener("scroll", gestionarBuscadorSticky);
+
 
 // ─── EVENTOS DOM ──────────────────────────────────────────────────────────────
 
@@ -377,16 +383,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
   cargarProductos();
 
-  // Toggle filtros
   const btnFiltros   = document.getElementById("btn-filtros");
   const panelFiltros = document.getElementById("filtros-opciones");
+  const btnEscalas   = document.getElementById("btn-escalas");
+  const panelEscalas = document.getElementById("escalas-opciones");
 
   btnFiltros.addEventListener("click", e => {
     e.stopPropagation();
     panelFiltros.classList.toggle("hidden");
+    panelEscalas.classList.add("hidden");
   });
 
-  // Toggle contacto final
+  btnEscalas.addEventListener("click", e => {
+    e.stopPropagation();
+    panelEscalas.classList.toggle("hidden");
+    panelFiltros.classList.add("hidden");
+  });
+
   const btnContacto   = document.querySelector(".btn-contacto-final");
   const panelContacto = document.querySelector(".contacto-final-opciones");
   const lightbox      = document.getElementById("lightbox");
@@ -397,18 +410,19 @@ document.addEventListener("DOMContentLoaded", () => {
     panelContacto.classList.toggle("hidden");
   });
 
-  if (paginacion) {
-    paginacion.addEventListener("click", e => {
-      const btn = e.target.closest(".pagina-btn");
-      if (!btn || btn.disabled) return;
-      const page = Number(btn.dataset.page);
-      if (!page || page === paginaActual) return;
-      paginaActual = page;
-      mostrarProductos(listaActual);
-    });
-  }
+  const manejarPaginacion = e => {
+    const btn = e.target.closest(".pagina-btn");
+    if (!btn || btn.disabled) return;
+    const page = Number(btn.dataset.page);
+    if (!page || page === paginaActual) return;
+    paginaActual = page;
+    mostrarProductos(listaActual);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
-  // Abrir imagen en lightbox al hacer clic en la portada
+  if (paginacion)    paginacion.addEventListener("click", manejarPaginacion);
+  if (paginacionTop) paginacionTop.addEventListener("click", manejarPaginacion);
+
   contenedor.addEventListener("click", e => {
     const imagen = e.target.closest(".img-producto");
     if (!imagen) return;
@@ -418,24 +432,22 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   lightbox.addEventListener("click", e => {
-    if (e.target === lightbox) {
-      lightbox.classList.add("hidden");
-    }
+    if (e.target === lightbox) lightbox.classList.add("hidden");
   });
 
-  // Cerrar lightbox con el botón X
-  const lightboxClose = document.getElementById("lightbox-close");
-  lightboxClose.addEventListener("click", () => {
+  document.getElementById("lightbox-close").addEventListener("click", () => {
     lightbox.classList.add("hidden");
   });
 
-  // Cerrar al hacer clic fuera
   document.addEventListener("click", e => {
     if (!btnContacto.contains(e.target) && !panelContacto.contains(e.target)) {
       panelContacto.classList.add("hidden");
     }
     if (!btnFiltros.contains(e.target) && !panelFiltros.contains(e.target)) {
       panelFiltros.classList.add("hidden");
+    }
+    if (!btnEscalas.contains(e.target) && !panelEscalas.contains(e.target)) {
+      panelEscalas.classList.add("hidden");
     }
   });
 
