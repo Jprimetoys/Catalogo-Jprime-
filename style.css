@@ -568,6 +568,10 @@ body {
   box-shadow: 0 14px 30px rgba(0, 0, 0, 0.26);
 }
 
+.btn-pedido {
+  margin-top: 12px;
+}
+
 .contacto-final-opciones {
   position: absolute;
   bottom: calc(100% + 12px);
@@ -615,15 +619,11 @@ body {
   transition: background 0.2s, transform 0.2s;
 }
 
-.contacto-link:hover {
-  background: rgba(255, 255, 255, 0.14);
-  transform: translateY(-1px);
-}
-
-.contacto-link.whatsapp {
-  background: linear-gradient(135deg, rgba(37, 211, 102, 0.12), rgba(37, 211, 102, 0.22));
-}
-
+ .btn-pedido {
+   margin-top: 12px;
+   text-decoration: none;
+   font-weight: 400;
+ }
 .contacto-link.instagram {
   background: linear-gradient(135deg, rgba(225, 48, 108, 0.12), rgba(225, 48, 108, 0.22));
 }
@@ -754,4 +754,3 @@ body {
     font-size: 12px;
   }
 }
-

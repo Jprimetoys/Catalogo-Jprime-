@@ -14,7 +14,6 @@ const ETIQUETAS_VISIBLES = new Set([
 // ─── ESTADO GLOBAL ────────────────────────────────────────────────────────────
 let productos        = [];
 let listaActual      = [];
-let ordenActual      = "default";
 let filtrosActivos   = new Set();
 let paginaActual     = 1;
 let imagenIntervalId = null;
@@ -57,6 +56,15 @@ function precioNumero(p) {
 
 function formatearPrecio(num) {
   return num.toLocaleString("es-CO");
+}
+
+function mezclarLista(arr) {
+  const copia = [...arr];
+  for (let i = copia.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copia[i], copia[j]] = [copia[j], copia[i]];
+  }
+  return copia;
 }
 
 // ─── CACHÉ LOCAL ──────────────────────────────────────────────────────────────
@@ -174,8 +182,7 @@ function aplicarFiltroYOrden(resetPage = false) {
     });
   }
 
-  if (ordenActual === "asc")  lista.sort((a, b) => precioNumero(a) - precioNumero(b));
-  if (ordenActual === "desc") lista.sort((a, b) => precioNumero(b) - precioNumero(a));
+  lista = mezclarLista(lista);
 
   listaActual = lista;
   mostrarProductos(lista);
@@ -348,15 +355,6 @@ function actualizarBotonesActivos() {
       btn.classList.toggle("activo", filtrosActivos.has(cat));
     }
   });
-}
-
-// ─── ORDEN POR PRECIO ─────────────────────────────────────────────────────────
-
-function ordenar(tipo) {
-  ordenActual = tipo;
-  document.querySelectorAll(".sort-btn").forEach(btn => btn.classList.remove("activo"));
-  document.getElementById(`sort-${tipo === "default" ? "def" : tipo}`).classList.add("activo");
-  aplicarFiltroYOrden();
 }
 
 // ─── TOAST ────────────────────────────────────────────────────────────────────
