@@ -5,7 +5,7 @@ const CACHE_KEY  = "jprime_productos";
 const CACHE_MINS = 60;
 
 const ETIQUETAS_VISIBLES = new Set([
-  "kingdom", "siege", "legacy", "movieverse", "armada", "g1",
+  "kingdom", "siege", "legacy", "blokees", "TV", "movieverse", "armada", "g1",
   "combiner", "3p", "cybertron", "energon", "foc", "classics", "cw", "tr",
   "gen", "potp", "aotp", "mainline", "legends", "masterpiece",
   "lego", "marvel", "off"
@@ -224,7 +224,7 @@ function mostrarProductos(lista) {
 
     const badgesHTML = tags
       .filter(tag => ETIQUETAS_VISIBLES.has(tag))
-      .map(tag => `<span class="badge">${tag}</span>`)
+      .map(tag => `<span class="badge">${ETIQUETA_NOMBRES[tag] || tag}</span>`)
       .join("");
 
     let precioHTML;

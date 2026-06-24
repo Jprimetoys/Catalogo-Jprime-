@@ -619,11 +619,12 @@ body {
   transition: background 0.2s, transform 0.2s;
 }
 
- .btn-pedido {
-   margin-top: 12px;
-   text-decoration: none;
-   font-weight: 600;
- }
+.btn-pedido {
+  margin-top: 12px;
+  text-decoration: none;
+  font-weight: 700;
+}
+
 .contacto-link.instagram {
   background: linear-gradient(135deg, rgba(225, 48, 108, 0.12), rgba(225, 48, 108, 0.22));
 }
