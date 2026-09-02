@@ -8,13 +8,14 @@ const ETIQUETAS_VISIBLES = new Set([
   "kingdom", "siege", "legacy", "movieverse", "armada", "g1",
   "combiner", "3p", "cybertron", "energon", "foc", "classics", "cw", "tr",
   "gen", "potp", "aotp", "mainline", "legends", "masterpiece",
-  "lego", "marvel", "off", "TV", "blokees"
+  "lego", "marvel", "off", "TV", "blokees", "novedad"
 ]);
 
 // ─── ESTADO GLOBAL ────────────────────────────────────────────────────────────
 let productos        = [];
 let listaActual      = [];
 let filtrosActivos   = new Set();
+let ordenPrecio      = null; // "asc" | "desc" | null
 let paginaActual     = 1;
 let imagenIntervalId = null;
 let mostrandoHover   = false;
@@ -65,6 +66,16 @@ function mezclarLista(arr) {
     [copia[i], copia[j]] = [copia[j], copia[i]];
   }
   return copia;
+}
+
+function ordenarListaPorPrecio(lista) {
+  if (!ordenPrecio) return mezclarLista(lista);
+
+  return [...lista].sort((a, b) => {
+    const precioA = precioNumero(a);
+    const precioB = precioNumero(b);
+    return ordenPrecio === "asc" ? precioA - precioB : precioB - precioA;
+  });
 }
 
 // ─── CACHÉ LOCAL ──────────────────────────────────────────────────────────────
@@ -182,7 +193,7 @@ function aplicarFiltroYOrden(resetPage = false) {
     });
   }
 
-  lista = mezclarLista(lista);
+  lista = ordenarListaPorPrecio(lista);
 
   listaActual = lista;
   mostrarProductos(lista);
@@ -224,7 +235,7 @@ function mostrarProductos(lista) {
 
     const badgesHTML = tags
       .filter(tag => ETIQUETAS_VISIBLES.has(tag))
-      .map(tag => `<span class="badge">${tag}</span>`)
+      .map(tag => `<span class="badge ${tag === "novedad" ? "badge-novedad" : ""}">${tag}</span>`)
       .join("");
 
     let precioHTML;
@@ -315,15 +326,42 @@ function renderPaginacion(totalPaginas) {
     return;
   }
 
-  const grupoActual = Math.ceil(paginaActual / GROUP_SIZE);
-  const inicio      = (grupoActual - 1) * GROUP_SIZE + 1;
-  const fin         = Math.min(grupoActual * GROUP_SIZE, totalPaginas);
+  const MAX_VISIBLE = 7;
+  let inicio = Math.max(1, paginaActual - Math.floor(MAX_VISIBLE / 2));
+  let fin = Math.min(totalPaginas, inicio + MAX_VISIBLE - 1);
+
+  if (fin - inicio + 1 < MAX_VISIBLE) {
+    inicio = Math.max(1, fin - MAX_VISIBLE + 1);
+  }
+
+  const paginas = [];
+
+  if (inicio > 1) {
+    paginas.push(1);
+    if (inicio > 2) paginas.push("ellipsis-start");
+  }
+
+  for (let i = inicio; i <= fin; i++) {
+    paginas.push(i);
+  }
+
+  if (fin < totalPaginas) {
+    if (fin < totalPaginas - 1) paginas.push("ellipsis-end");
+    paginas.push(totalPaginas);
+  }
 
   let html = "";
   html += `<button class="pagina-btn" data-page="${paginaActual - 1}" ${paginaActual === 1 ? "disabled" : ""}>«</button>`;
-  for (let i = inicio; i <= fin; i++) {
-    html += `<button class="pagina-btn${i === paginaActual ? " activo" : ""}" data-page="${i}">${i}</button>`;
-  }
+
+  paginas.forEach(page => {
+    if (page === "ellipsis-start" || page === "ellipsis-end") {
+      html += `<span class="ellipsis">…</span>`;
+      return;
+    }
+
+    html += `<button class="pagina-btn${page === paginaActual ? " activo" : ""}" data-page="${page}">${page}</button>`;
+  });
+
   html += `<button class="pagina-btn" data-page="${paginaActual + 1}" ${paginaActual === totalPaginas ? "disabled" : ""}>»</button>`;
 
   if (paginacion)    paginacion.innerHTML    = html;
@@ -355,6 +393,33 @@ function actualizarBotonesActivos() {
       btn.classList.toggle("activo", filtrosActivos.has(cat));
     }
   });
+}
+
+function actualizarBotonPrecio() {
+  const btn = document.getElementById("btn-precio");
+  if (!btn) return;
+
+  if (ordenPrecio === "asc") {
+    btn.textContent = "Precio ↑";
+    btn.classList.add("activo");
+  } else if (ordenPrecio === "desc") {
+    btn.textContent = "Precio ↓";
+    btn.classList.add("activo");
+  } else {
+    btn.textContent = "Precio";
+    btn.classList.remove("activo");
+  }
+
+  document.querySelectorAll(".precio-btn").forEach(option => {
+    const isActive = option.dataset.orden === ordenPrecio;
+    option.classList.toggle("activo", isActive);
+  });
+}
+
+function cambiarOrdenPrecio(orden) {
+  ordenPrecio = ordenPrecio === orden ? null : orden;
+  actualizarBotonPrecio();
+  aplicarFiltroYOrden(true);
 }
 
 // ─── TOAST ────────────────────────────────────────────────────────────────────
@@ -406,20 +471,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
   cargarProductos();
 
+  const btnPrecio    = document.getElementById("btn-precio");
+  const panelPrecio  = document.getElementById("precio-opciones");
   const btnFiltros   = document.getElementById("btn-filtros");
   const panelFiltros = document.getElementById("filtros-opciones");
   const btnEscalas   = document.getElementById("btn-escalas");
   const panelEscalas = document.getElementById("escalas-opciones");
 
+  btnPrecio.addEventListener("click", e => {
+    e.stopPropagation();
+    panelPrecio.classList.toggle("hidden");
+    panelFiltros.classList.add("hidden");
+    panelEscalas.classList.add("hidden");
+  });
+
   btnFiltros.addEventListener("click", e => {
     e.stopPropagation();
     panelFiltros.classList.toggle("hidden");
+    panelPrecio.classList.add("hidden");
     panelEscalas.classList.add("hidden");
   });
 
   btnEscalas.addEventListener("click", e => {
     e.stopPropagation();
     panelEscalas.classList.toggle("hidden");
+    panelPrecio.classList.add("hidden");
     panelFiltros.classList.add("hidden");
   });
 
@@ -465,6 +541,9 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("click", e => {
     if (!btnContacto.contains(e.target) && !panelContacto.contains(e.target)) {
       panelContacto.classList.add("hidden");
+    }
+    if (!btnPrecio.contains(e.target) && !panelPrecio.contains(e.target)) {
+      panelPrecio.classList.add("hidden");
     }
     if (!btnFiltros.contains(e.target) && !panelFiltros.contains(e.target)) {
       panelFiltros.classList.add("hidden");

@@ -153,6 +153,7 @@ body {
   z-index: 10;
 }
 
+#btn-precio,
 #btn-filtros,
 #btn-escalas {
   padding: 10px 20px;
@@ -166,9 +167,20 @@ body {
   transition: background 0.3s;
 }
 
+#btn-precio:hover,
 #btn-filtros:hover,
 #btn-escalas:hover {
   background: linear-gradient(45deg, #0056b3, #0099cc);
+}
+
+.filtro-btn.accion-btn {
+  background: linear-gradient(45deg, #cc1d1d, #ff4d4d);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.filtro-btn.accion-btn:hover {
+  background: linear-gradient(45deg, #a70d0d, #e63333);
 }
 
 .filtros {
@@ -465,6 +477,13 @@ body {
   background: rgba(255, 255, 255, 0.12);
   color: rgba(255, 255, 255, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.badge-novedad {
+  background: rgba(255, 59, 59, 0.95);
+  color: #fff;
+  border-color: rgba(255, 120, 120, 0.8);
+  box-shadow: 0 0 0 1px rgba(255, 99, 99, 0.2);
 }
 
 /* ─── ACCIONES DE TARJETA ─────────────────────── */

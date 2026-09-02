@@ -13,7 +13,7 @@
   <div class="top-bar">
 
     <div class="promo-banner">
-      <span>10% de descuento en figuras masterpiece!.</span>
+      <span>10% de descuento en todos los Optimus!.</span>
     </div>
 
     <div class="header">
@@ -34,6 +34,14 @@
     </div>
 
     <div class="filter-row">
+
+      <div class="filtros-wrapper">
+        <button id="btn-precio" class="orden-btn">Precio</button>
+        <div id="precio-opciones" class="filtros hidden">
+          <button class="filtro-btn precio-btn" data-orden="asc" onclick="cambiarOrdenPrecio('asc')">Ascendente</button>
+          <button class="filtro-btn precio-btn" data-orden="desc" onclick="cambiarOrdenPrecio('desc')">Descendente</button>
+        </div>
+      </div>
 
       <div class="filtros-wrapper">
         <button id="btn-filtros">Filtros ▼</button>
@@ -59,7 +67,6 @@
           <button class="filtro-btn" data-cat="aotp"              onclick="filtrarCategoria('aotp')">AOTP</button>
           <button class="filtro-btn" data-cat="lego"              onclick="filtrarCategoria('lego')">Lego</button>
           <button class="filtro-btn" data-cat="marvel"            onclick="filtrarCategoria('marvel')">Marvel</button>
-          <button class="filtro-btn" data-cat="off"               onclick="filtrarCategoria('off')">🏷️ Ofertas</button>
         </div>
       </div>
 
@@ -71,6 +78,9 @@
           <button class="filtro-btn" data-cat="masterpiece" onclick="filtrarCategoria('masterpiece')">Masterpiece</button>
         </div>
       </div>
+
+      <button class="filtro-btn accion-btn" data-cat="novedad" onclick="filtrarCategoria('novedad')">Novedades</button>
+      <button class="filtro-btn accion-btn" data-cat="off" onclick="filtrarCategoria('off')">Ofertas</button>
 
     </div>
 
