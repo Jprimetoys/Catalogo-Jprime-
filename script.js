@@ -179,8 +179,8 @@ function aplicarFiltroYOrden(resetPage = false) {
   if (filtrosActivos.size > 0) {
     lista = lista.filter(p => {
       if (!p.etiquetas) return false;
-      const tags = p.etiquetas.split("-").map(t => t.trim());
-      return [...filtrosActivos].every(f => tags.includes(f));
+      const tags = p.etiquetas.split("-").map(t => t.trim().toLowerCase()).filter(Boolean);
+      return [...filtrosActivos].map(f => f.toLowerCase()).every(f => tags.includes(f));
     });
   }
 
@@ -228,8 +228,9 @@ function mostrarProductos(lista) {
     const waMsg    = encodeURIComponent(`Quisiera comprar a "${p.nombre}"`);
     const waLink   = `https://wa.me/${WA_NUMBER}?text=${waMsg}`;
 
-    const tags = p.etiquetas ? p.etiquetas.split("-").map(t => t.trim()).filter(Boolean) : [];
+    const tags = p.etiquetas ? p.etiquetas.split("-").map(t => t.trim().toLowerCase()).filter(Boolean) : [];
     const hasOff = tags.includes("off");
+    const hasNovedad = tags.includes("novedad");
     const isMasterpiece = tags.includes("masterpiece");
     const cardClass = `card${isMasterpiece ? " masterpiece" : ""}`;
 
@@ -246,6 +247,8 @@ function mostrarProductos(lista) {
         <p class="precio-original">$${formatearPrecio(original)}</p>
         <p class="precio-descuento">$${formatearPrecio(conDesc)}<span class="badge-off">-10%</span></p>
       `;
+    } else if (hasNovedad) {
+      precioHTML = `<p>$${formatearPrecio(precioNumero(p))}</p>`;
     } else {
       precioHTML = `<p>$${formatearPrecio(precioNumero(p))}</p>`;
     }
@@ -371,13 +374,15 @@ function renderPaginacion(totalPaginas) {
 // ─── FILTROS ──────────────────────────────────────────────────────────────────
 
 function filtrarCategoria(categoria) {
-  if (categoria === "all") {
+  const key = categoria.toLowerCase();
+
+  if (key === "all") {
     filtrosActivos.clear();
   } else {
-    if (filtrosActivos.has(categoria)) {
-      filtrosActivos.delete(categoria);
+    if (filtrosActivos.has(key)) {
+      filtrosActivos.delete(key);
     } else {
-      filtrosActivos.add(categoria);
+      filtrosActivos.add(key);
     }
   }
   actualizarBotonesActivos();
@@ -386,7 +391,7 @@ function filtrarCategoria(categoria) {
 
 function actualizarBotonesActivos() {
   document.querySelectorAll(".filtro-btn").forEach(btn => {
-    const cat = btn.dataset.cat;
+    const cat = (btn.dataset.cat || "").toLowerCase();
     if (cat === "all") {
       btn.classList.toggle("activo", filtrosActivos.size === 0);
     } else {
