@@ -1,7 +1,7 @@
 // ─── CONFIGURACIÓN ───────────────────────────────────────────────────────────
 const WA_NUMBER  = "573158261632";
 const SHEET_URL  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTF7A_45x7iWTPbQse63AVIA2LEvX1G-SSi-B7jvIJ5iZrbqlNq4zQYZVJ6yajuspzBqYcsKdvVkgpH/pub?output=csv";
-const CACHE_KEY  = "jprime_productos";
+const CACHE_KEY  = "jprime_productos_v3";
 const CACHE_MINS = 60;
 
 const ETIQUETAS_VISIBLES = new Set([
@@ -46,9 +46,14 @@ function parsearCSV(texto) {
       precio:      col[1]?.replace(/"/g, "").trim() || "",
       etiquetas:   col[2]?.replace(/"/g, "").trim() || "",
       imagen:      col[3]?.replace(/"/g, "").trim() || "",
-      imagenHover: col[4]?.replace(/"/g, "").trim() || ""
+      imagenHover: col[4]?.replace(/"/g, "").trim() || "",
+      estado:      col[5]?.replace(/"/g, "").trim() || ""
     };
   }).filter(p => p.nombre);
+}
+
+function estaDisponible(producto) {
+  return producto.estado?.trim().toLowerCase() === "disponible";
 }
 
 function precioNumero(p) {
@@ -142,7 +147,7 @@ async function fetchSheets(silencioso = false) {
       productos = parsearCSV(data);
       if (productos.length === 0) throw new Error("Sin productos en el CSV");
       guardarCache(productos);
-      if (!silencioso) aplicarFiltroYOrden();
+      aplicarFiltroYOrden();
       return; // éxito — salir
     } catch (err) {
       console.warn("Falló intento con URL:", url.substring(0, 60) + "...", "|", err.message);
@@ -174,7 +179,7 @@ async function fetchSheets(silencioso = false) {
 
 function aplicarFiltroYOrden(resetPage = false) {
   if (resetPage) paginaActual = 1;
-  let lista = [...productos];
+  let lista = productos.filter(estaDisponible);
 
   if (filtrosActivos.size > 0) {
     lista = lista.filter(p => {
@@ -202,7 +207,7 @@ function aplicarFiltroYOrden(resetPage = false) {
 // ─── RENDER DE PRODUCTOS ──────────────────────────────────────────────────────
 
 function mostrarProductos(lista) {
-  const total = productos.length;
+  const total = productos.filter(estaDisponible).length;
   const totalFiltrados = lista.length;
   const totalPaginas = Math.max(1, Math.ceil(totalFiltrados / PRODUCTOS_POR_PAGINA));
   if (paginaActual > totalPaginas) paginaActual = totalPaginas;
